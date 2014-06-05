@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/x_axis_Text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="none"
+        android:paddingLeft="50dp"
+        android:textColor="#0000FF" 
+		android:background="#FFFFFF"
+        android:text="@string/x_axis_title"
+        android:textSize="@android:dimen/notification_large_icon_height" />
+
+    <TextView
+        android:id="@+id/y_axis_Text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="none"
+        android:paddingLeft="50dp"
+        android:textColor="#008800" 
+        android:background="#FFFFFF"
+        android:text="@string/y_axis_title"
+        android:textSize="@android:dimen/notification_large_icon_height" />
+
+    <TextView
+        android:id="@+id/z_axis_Text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="none"
+        android:paddingLeft="50dp"
+        android:textColor="#FF0000" 
+        android:background="#FFFFFF"
+        android:text="@string/z_axis_title"
+        android:textSize="@android:dimen/notification_large_icon_height" />
+
+    <com.androidplot.xy.XYPlot
+        android:id="@+id/dynamicPlot"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:background="#FFFFFF"
+        android:layout_weight="0.62"
+        title="@string/dynamic_plot" />
+
+</LinearLayout>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">PebblePointer</string>
+  <string name="activity_Accelerometer">Accelerometer</string>
+  <string name="x_axis_title">x-axis</string>
+  <string name="y_axis_title">y-axis</string>
+  <string name="z_axis_title">z-axis</string>
+  <string name="activity_Plot">Plot</string>
+  <string name="dynamic_plot">Dynamic Plot</string>
+</resources>
