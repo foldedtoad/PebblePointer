@@ -21,6 +21,9 @@
 static Window * window;
 static AppSync  sync;
 
+static BitmapLayer * image_layer;
+static GBitmap     * image;
+
 static bool     isConnected = false;
 static bool     tapSwitchState = false;
 static int      syncChangeCount = 0;
@@ -254,6 +257,16 @@ int main(void)
   const bool animated = true;
   window_stack_push(window, animated);
 
+  Layer * window_layer = window_get_root_layer(window);
+  GRect bounds = layer_get_frame(window_layer);
+
+  image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_PEBBLEPOINTER);
+
+  image_layer = bitmap_layer_create(bounds);
+  bitmap_layer_set_bitmap(image_layer, image);
+  bitmap_layer_set_alignment(image_layer, GAlignCenter);
+  layer_add_child(window_layer, bitmap_layer_get_layer(image_layer));
+
   accel_service_set_sampling_rate( SAMPLING_RATE );
   accel_tap_service_subscribe( (AccelTapHandler) accel_tap_callback );
   app_message_open(SYNC_BUFFER_SIZE, SYNC_BUFFER_SIZE);
@@ -276,6 +289,8 @@ int main(void)
 
   accel_tap_service_unsubscribe();
 
+  gbitmap_destroy(image);
+  bitmap_layer_destroy(image_layer);
   window_destroy(window);
 
   APP_LOG(APP_LOG_LEVEL_INFO, "main: exit");

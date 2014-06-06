@@ -8,10 +8,14 @@
   "watchapp": {
     "watchface": false
   },
-  "appKeys": {
-    "dummy": 0
-  },
+  "appKeys": {},
   "resources": {
-    "media": []
+    "media": [
+      {
+        "type": "png",
+        "name": "IMAGE_PEBBLEPOINTER",
+        "file": "images/pebblepointer.png"
+      }
+    ]
   }
 }
