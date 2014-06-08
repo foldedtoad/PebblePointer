@@ -6,11 +6,7 @@
 #include "pebble.h"
 
 /*----------------------------------------------------------------------------*/
-/*  Note: potential serialization/race-condition issues.                      */
 /*                                                                            */
-/*  Assumption: Callbacks are serialized:                                     */
-/*              For example, the accel_data_callback will return before       */
-/*              the sync_tuple_changed_callback is entered.                   */
 /*----------------------------------------------------------------------------*/
 
 #define SAMPLING_RATE         ACCEL_SAMPLING_10HZ
@@ -47,14 +43,13 @@ enum PebblePointer_Cmd_Values {
   PP_CMD_VECTOR  = 1,
 };
 
-
 typedef struct {
   uint64_t    sync_set;
   uint64_t    sync_vib;
   uint64_t    sync_missed;
 } sync_stats_t;
 
-static sync_stats_t   syncStats = {0,0, 0};
+static sync_stats_t   syncStats = {0, 0, 0};
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
@@ -127,6 +122,7 @@ static void window_load(Window * window)
 {
   APP_LOG(APP_LOG_LEVEL_INFO, "%s", __FUNCTION__);
 
+  /* This is just a dummy structure used for initializaton only. */
   Tuplet vector_dict[] = {
     TupletInteger(PP_KEY_CMD, PP_CMD_INVALID),
     TupletInteger(PP_KEY_X, (int) 0x11111111),
@@ -157,7 +153,19 @@ static void window_unload(Window * window)
 }
 
 /*----------------------------------------------------------------------------*/
+/*  Handle receiving a new accelerometer set of samples. In this application  */
+/*  the accelerometer is configured to indicate a sample size of one. This    */
+/*  allows for a better real-time transfer of data to the remote side.        */
+/*  Filter out any samples which occurred when the watch was vibrating.       */
 /*                                                                            */
+/*  Due to the fact that a new vector dictionary can't be send until all the  */
+/*  components of the previous dictorary are process via the                  */
+/*  sync_tuple_changed_callback(), it is necessary to track these componets.  */
+/*  Since there are four and only four components in a dictionary, a simple   */
+/*  counted-reference, syncChangeCount, is used.                              */
+/*  Each time sync_tuple_changed_callback() is called, this referenc counter  */
+/*  is decremented. Only when the syncChangeCount is zero will a new          */
+/*  dictionary be built and sent.                                             */
 /*----------------------------------------------------------------------------*/
 void accel_data_callback(void * data, uint32_t num_samples) 
 {  
@@ -174,6 +182,7 @@ void accel_data_callback(void * data, uint32_t num_samples)
     return;
   }
 
+  /* Build the dictionary to hold this vector */
   Tuplet vector_dict[] = {
     TupletInteger(PP_KEY_CMD, PP_CMD_VECTOR),
     TupletInteger(PP_KEY_X, (int) vector->x),
@@ -181,6 +190,7 @@ void accel_data_callback(void * data, uint32_t num_samples)
     TupletInteger(PP_KEY_Z, (int) vector->z),
   };
 
+  /* Send the newly built dictionary to the remote side. */
   result = app_sync_set( &sync, vector_dict, ARRAY_LENGTH(vector_dict) );
 
   if (result != APP_MSG_OK) {
@@ -194,10 +204,35 @@ void accel_data_callback(void * data, uint32_t num_samples)
 }
 
 /*----------------------------------------------------------------------------*/
+/*  This happens whenever the accelerometer service indicates new tap event.  */
+/*  The nominal response for this callback depends on the virtual switch      */
+/*  "tapSwitchState", which behaves as a toggle switch.                       */
 /*                                                                            */
+/*  When tapSwitchState is false, then the tap-tap event indicates that the   */
+/*  accelerometer service should be initialized for receiving accelerometer   */
+/*  data. In addition, the Bluetooth EDR sniff interval is reduced. This      */
+/*  results in faster response time for sending data to the remote side,      */
+/*  but also consumes more power as the watch's duty-cycle is increased.      */
+/*                                                                            */
+/*  When tapSwitchState is true, then the tap-tap event indicates that the    */
+/*  accelerometer service should be stopped for receiving accelerometer data. */
+/*  At that time any runtime statistics are dumped to the log for review.     */
+/*  Finally, the Bluetooth sniff interval is set back to its normal level     */
+/*  so as to conserve power when not the accelerometer-data is not active.    */
+/*                                                                            */
+/*  As a form of user request feedback, the vibrator is triggered, to         */
+/*  indicate that the "start" or "stop" request has been recognized.          */
+/*                                                                            */
+/*  NOTE: Just doing a tap-tap on the face of the watch does not product a    */
+/*        strong enough signal to the accelerometer to reliably generate an   */
+/*        event. I have found that a rapid rotation of the wrist produces     */
+/*        a more reliable result.                                             */
 /*----------------------------------------------------------------------------*/
 void accel_tap_callback(AccelAxisType axis, uint32_t direction) 
 {
+  /* 
+   *  If currently not connected to remote side, then force switch state OFF.
+   */
   if (isConnected == false) {
     tapSwitchState = false;
   }
@@ -230,7 +265,7 @@ void accel_tap_callback(AccelAxisType axis, uint32_t direction)
 }
 
 /*----------------------------------------------------------------------------*/
-/*                                                                            */
+/* This is called whenever the connection state changes.                      */
 /*----------------------------------------------------------------------------*/
 void bluetooth_connection_callback(bool connected) 
 {
@@ -240,7 +275,8 @@ void bluetooth_connection_callback(bool connected)
 }
 
 /*----------------------------------------------------------------------------*/
-/*                                                                            */
+/*  NOTE: This app is started automatically by the remote side request for    */
+/*        its activation.  You do not need start this app via the watch I/F.  */
 /*----------------------------------------------------------------------------*/
 int main(void) 
 {
@@ -260,17 +296,19 @@ int main(void)
   Layer * window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_frame(window_layer);
 
+  /* Display the simple splash screen to indicate PebblePointer is running. */
   image = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_PEBBLEPOINTER);
-
   image_layer = bitmap_layer_create(bounds);
   bitmap_layer_set_bitmap(image_layer, image);
   bitmap_layer_set_alignment(image_layer, GAlignCenter);
   layer_add_child(window_layer, bitmap_layer_get_layer(image_layer));
 
+  /* Basic accelerometer initialization.  Enable Tap-Tap functionality. */
   accel_service_set_sampling_rate( SAMPLING_RATE );
   accel_tap_service_subscribe( (AccelTapHandler) accel_tap_callback );
   app_message_open(SYNC_BUFFER_SIZE, SYNC_BUFFER_SIZE);
 
+  /* Request notfication on Bluetooth connectivity changes.  */
   bluetooth_connection_service_subscribe( bluetooth_connection_callback );
   isConnected = bluetooth_connection_service_peek();
   APP_LOG(APP_LOG_LEVEL_INFO, "initially %sonnected", (isConnected) ? "c" : "disc");
@@ -287,8 +325,10 @@ int main(void)
     accel_data_service_unsubscribe();    
   }
 
+  /* Remove the Tap-Tap callback */
   accel_tap_service_unsubscribe();
 
+  /* Release splash-screen resources */
   gbitmap_destroy(image);
   bitmap_layer_destroy(image_layer);
   window_destroy(window);
