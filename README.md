@@ -33,7 +33,7 @@ SETTING UP THE ANDROID PROJECT
 4) Import PEBBLE_KIT project into Eclipse.
 
     [File]-->[Import]-->[Android]-->[Existing Android Code Into Workspace]-->[Next]
-    [Browse] { pebble-dev/PebbleSDK-2.1.1/PebbleKit-Android/PebbleKit } [OK]
+    [Browse] { pebble-dev/PebbleSDK-2.2/PebbleKit-Android/PebbleKit } [OK]
     
     Be sure "Project to Import" is checked for PEBBLE_KIT.
     
