@@ -32,7 +32,7 @@ enum Axis_Index {
 };
 
 enum PebblePointer_Keys {
-  PP_KEY_CMD  = 128, 
+  PP_KEY_CMD  = 128,
   PP_KEY_X    = 1,
   PP_KEY_Y    = 2,
   PP_KEY_Z    = 3,
@@ -82,18 +82,18 @@ static char * DictionaryResult_to_String(DictionaryResult error)
   switch (error) {
     case DICT_OK:                      return "OK";
     case DICT_NOT_ENOUGH_STORAGE:      return "NOT_ENOUGH_STORAGE";
-    case DICT_INVALID_ARGS:            return "INVALID_ARGS"; 
+    case DICT_INVALID_ARGS:            return "INVALID_ARGS";
     case DICT_INTERNAL_INCONSISTENCY:  return "INTERNAL_INCONSISTENCY";
-    case DICT_MALLOC_FAILED:           return "MALLOC_FAILED";    
+    case DICT_MALLOC_FAILED:           return "MALLOC_FAILED";
     default:                           return "unknown";
   }
 }
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
-static void sync_error_callback(DictionaryResult dict_error, 
-                                AppMessageResult error, 
-                                void * context) 
+static void sync_error_callback(DictionaryResult dict_error,
+                                AppMessageResult error,
+                                void * context)
 {
   APP_LOG(APP_LOG_LEVEL_DEBUG, "%s: DICT_%s, APP_MSG_%s", __FUNCTION__,
     DictionaryResult_to_String(dict_error), AppMessageResult_to_String(error));
@@ -102,13 +102,13 @@ static void sync_error_callback(DictionaryResult dict_error,
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
-static void sync_tuple_changed_callback(const uint32_t key, 
-                                        const Tuple * new_tuple, 
-                                        const Tuple * old_tuple, 
-                                        void * context) 
+static void sync_tuple_changed_callback(const uint32_t key,
+                                        const Tuple * new_tuple,
+                                        const Tuple * old_tuple,
+                                        void * context)
 {
   if (syncChangeCount > 0) {
-    syncChangeCount--;    
+    syncChangeCount--;
   }
   else {
     APP_LOG(APP_LOG_LEVEL_INFO, "unblock");
@@ -118,7 +118,7 @@ static void sync_tuple_changed_callback(const uint32_t key,
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
-static void window_load(Window * window) 
+static void window_load(Window * window)
 {
   APP_LOG(APP_LOG_LEVEL_INFO, "%s", __FUNCTION__);
 
@@ -132,20 +132,20 @@ static void window_load(Window * window)
 
   syncChangeCount = ARRAY_LENGTH(vector_dict);
 
-  app_sync_init( &sync, 
-                 sync_buffer, sizeof(sync_buffer), 
+  app_sync_init( &sync,
+                 sync_buffer, sizeof(sync_buffer),
                  vector_dict, ARRAY_LENGTH(vector_dict),
-                 sync_tuple_changed_callback, 
-                 sync_error_callback, 
+                 sync_tuple_changed_callback,
+                 sync_error_callback,
                  NULL );
 
   syncStats.sync_set++;
-} 
+}
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
-static void window_unload(Window * window) 
+static void window_unload(Window * window)
 {
   APP_LOG(APP_LOG_LEVEL_INFO, "%s", __FUNCTION__);
 
@@ -167,11 +167,11 @@ static void window_unload(Window * window)
 /*  is decremented. Only when the syncChangeCount is zero will a new          */
 /*  dictionary be built and sent.                                             */
 /*----------------------------------------------------------------------------*/
-void accel_data_callback(void * data, uint32_t num_samples) 
-{  
+void accel_data_callback(void * data, uint32_t num_samples)
+{
   AppMessageResult result;
   AccelData * vector = (AccelData*) data;
- 
+
   if (vector->did_vibrate) {
     syncStats.sync_vib++;
     return;
@@ -194,7 +194,7 @@ void accel_data_callback(void * data, uint32_t num_samples)
   result = app_sync_set( &sync, vector_dict, ARRAY_LENGTH(vector_dict) );
 
   if (result != APP_MSG_OK) {
-      APP_LOG(APP_LOG_LEVEL_DEBUG, "app_sync_set: APP_MSG_%s", 
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "app_sync_set: APP_MSG_%s",
              AppMessageResult_to_String(result));
   }
   else {
@@ -228,9 +228,9 @@ void accel_data_callback(void * data, uint32_t num_samples)
 /*        event. I have found that a rapid rotation of the wrist produces     */
 /*        a more reliable result.                                             */
 /*----------------------------------------------------------------------------*/
-void accel_tap_callback(AccelAxisType axis, uint32_t direction) 
+void accel_tap_callback(AccelAxisType axis, uint32_t direction)
 {
-  /* 
+  /*
    *  If currently not connected to remote side, then force switch state OFF.
    */
   if (isConnected == false) {
@@ -244,19 +244,19 @@ void accel_tap_callback(AccelAxisType axis, uint32_t direction)
     APP_LOG(APP_LOG_LEVEL_INFO, "start sampling");
     vibes_long_pulse();
     app_comm_set_sniff_interval(SNIFF_INTERVAL_REDUCED);
-    accel_data_service_subscribe( SAMPLING_RATE, 
-                                  (AccelDataHandler) accel_data_callback );    
+    accel_data_service_subscribe( SAMPLING_RATE,
+                                  (AccelDataHandler) accel_data_callback );
   }
   else {
     app_comm_set_sniff_interval(SNIFF_INTERVAL_NORMAL);
     accel_data_service_unsubscribe();
     vibes_long_pulse();
     APP_LOG(APP_LOG_LEVEL_INFO, "stop sampling");
-    APP_LOG(APP_LOG_LEVEL_INFO, "stats: sync_set:    %lu", 
+    APP_LOG(APP_LOG_LEVEL_INFO, "stats: sync_set:    %lu",
             (unsigned long)syncStats.sync_set);
-    APP_LOG(APP_LOG_LEVEL_INFO, "stats: sync_vib:    %lu", 
-            (unsigned long)syncStats.sync_vib);    
-    APP_LOG(APP_LOG_LEVEL_INFO, "stats: sync_missed: %lu", 
+    APP_LOG(APP_LOG_LEVEL_INFO, "stats: sync_vib:    %lu",
+            (unsigned long)syncStats.sync_vib);
+    APP_LOG(APP_LOG_LEVEL_INFO, "stats: sync_missed: %lu",
             (unsigned long)syncStats.sync_missed);
     syncStats.sync_set = 0;
     syncStats.sync_vib = 0;
@@ -267,10 +267,10 @@ void accel_tap_callback(AccelAxisType axis, uint32_t direction)
 /*----------------------------------------------------------------------------*/
 /* This is called whenever the connection state changes.                      */
 /*----------------------------------------------------------------------------*/
-void bluetooth_connection_callback(bool connected) 
+void bluetooth_connection_callback(bool connected)
 {
   isConnected = connected;
-  
+
   APP_LOG(APP_LOG_LEVEL_INFO, "%sonnected", (isConnected) ? "C" : "Disc");
 }
 
@@ -278,7 +278,7 @@ void bluetooth_connection_callback(bool connected)
 /*  NOTE: This app is started automatically by the remote side request for    */
 /*        its activation.  You do not need start this app via the watch I/F.  */
 /*----------------------------------------------------------------------------*/
-int main(void) 
+int main(void)
 {
   APP_LOG(APP_LOG_LEVEL_INFO, "main: entry:  %s %s", __TIME__, __DATE__);
 
@@ -314,7 +314,7 @@ int main(void)
   APP_LOG(APP_LOG_LEVEL_INFO, "initially %sonnected", (isConnected) ? "c" : "disc");
 
   /*
-   *   Event Processing 
+   *   Event Processing
    */
   app_event_loop();
 
@@ -322,7 +322,7 @@ int main(void)
    *   Decommission App
    */
   if (tapSwitchState == true) {
-    accel_data_service_unsubscribe();    
+    accel_data_service_unsubscribe();
   }
 
   /* Remove the Tap-Tap callback */
