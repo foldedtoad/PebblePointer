@@ -3,7 +3,7 @@
 # clean, build, install and monitor script.
 
 if [ -z "$VAR" ]; then
-    echo "Please set the environment variable PEBBLE_IP to teh IP address of your device with a Pebble paired with it."
+    echo "Please set the environment variable PEBBLE_IP to the IP address of your device with a Pebble paired with it."
     exit 1
 fi
 
