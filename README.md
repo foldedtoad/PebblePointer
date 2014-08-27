@@ -74,8 +74,8 @@ BUILDING THE PEBBLE WATCH APP
 
 9) Review the "make.sh" file and change the IP address to that 
    of your target Android device which is bound to your Pebble watch.
-   (FIXME: This needs to be fixed with an export to specify the IP address.)
 
-10) Run the "./make.sh" script, which will do a build, load and go sequence
-    for the watch app.
+10) Run `PEBBLE_IP=196.168.1.2 ./make.sh`, which will do a build, load and go sequence
+    for the watch app. Set `PEBBLE_IP` to the IP address of your target Android
+    device which is bound to your Pebble watch.
 
