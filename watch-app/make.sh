@@ -1,7 +1,13 @@
+#!/bin/bash
+
 # clean, build, install and monitor script.
-# REM: Change IP address to that of your android phone's.
-#
+
+if [ -z "$PEBBLE_IP" ]; then
+    echo "Please set the environment variable PEBBLE_IP to the IP address of your device with a Pebble paired with it."
+    exit 1
+fi
+
 pebble clean
 pebble build
-pebble install --phone 192.168.1.2
-pebble logs    --phone 192.168.1.2
+pebble install --phone $PEBBLE_IP
+pebble logs    --phone $PEBBLE_IP
