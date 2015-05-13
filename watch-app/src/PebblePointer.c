@@ -244,7 +244,7 @@ void accel_tap_callback(AccelAxisType axis, uint32_t direction)
     APP_LOG(APP_LOG_LEVEL_INFO, "start sampling");
     vibes_long_pulse();
     app_comm_set_sniff_interval(SNIFF_INTERVAL_REDUCED);
-    accel_data_service_subscribe( SAMPLING_RATE,
+    accel_data_service_subscribe( SAMPLES_PER_CALLBACK,
                                   (AccelDataHandler) accel_data_callback );
   }
   else {
