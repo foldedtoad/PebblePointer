@@ -125,7 +125,7 @@ public class AccelerometerActivity extends Activity {
         dynamicPlot.addSeries(xSeries, fmtX);
 
         // Green line for Y axis.
-        LineAndPointFormatter fmtY = new LineAndPointFormatter(Color.GREEN, null, null, null);;
+        LineAndPointFormatter fmtY = new LineAndPointFormatter(Color.GREEN, null, null, null);
         dynamicPlot.addSeries(ySeries, fmtY);
 
         // Red line for Z axis.
